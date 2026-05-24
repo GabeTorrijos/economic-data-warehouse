@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualize | Economic Data Warehouse</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav>
+        <div class="nav-brand">Economic Data Warehouse</div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/query">SQL Query</a>
+            <a href="/visualize">Visualize</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Visualize Economic Data</h1>
+        <p class="subtitle">Select any series to view an interactive chart of historical data.</p>
+
+        <div class="select-box">
+            <label for="seriesSelect">Choose a data series:</label>
+            <select id="seriesSelect">
+                <option value="">-- Select a series --</option>
+                {% for s in series %}
+                <option value="{{ s.series_id }}" {% if request.args.get('series') == s.series_id %}selected{% endif %}>
+                    {{ s.series_name }} ({{ s.series_id }})
+                </option>
+                {% endfor %}
+            </select>
+            <button class="btn" onclick="loadChart()">Load Chart</button>
+        </div>
+
+        <div id="chart-container" style="display:none;">
+            <h2 id="chart-title"></h2>
+            <div class="chart-wrapper">
+                <canvas id="myChart"></canvas>
+            </div>
+            <div id="chart-stats" class="stats-grid"></div>
+        </div>
+
+        <div id="loading" style="display:none;">
+            <p>Loading data...</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>Built with Python, Flask, SQLAlchemy & FRED API | <a href="https://github.com/GabeTorrijos" target="_blank">GitHub</a></p>
+    </footer>
+
+    <script>
+        let myChart = null;
+
+        // Auto-load chart if series is in URL
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('series')) {
+                loadChart();
+            }
+        };
+
+        function loadChart() {
+            const seriesId = document.getElementById('seriesSelect').value;
+            if (!seriesId) {
+                alert('Please select a series first!');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('chart-container').style.display = 'none';
+
+            fetch(`/api/series/${seriesId}`)
+                .then(res => res.json())
+                .then(data => {
+                    const labels = data.data.map(d => d.date);
+                    const values = data.data.map(d => d.value);
+
+                    // Calculate stats
+                    const min = Math.min(...values).toFixed(2);
+                    const max = Math.max(...values).toFixed(2);
+                    const avg = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(2);
+                    const latest = values[values.length - 1].toFixed(2);
+
+                    // Update stats
+                    document.getElementById('chart-stats').innerHTML = `
+                        <div class="stat-card"><div class="stat-number">${latest}</div><div class="stat-label">Latest Value</div></div>
+                        <div class="stat-card"><div class="stat-number">${avg}</div><div class="stat-label">Historical Average</div></div>
+                        <div class="stat-card"><div class="stat-number">${min}</div><div class="stat-label">All-Time Low</div></div>
+                        <div class="stat-card"><div class="stat-number">${max}</div><div class="stat-label">All-Time High</div></div>
+                    `;
+
+                    // Update title
+                    const selectedOption = document.getElementById('seriesSelect').selectedOptions[0].text;
+                    document.getElementById('chart-title').textContent = selectedOption;
+
+                    // Destroy old chart if exists
+                    if (myChart) myChart.destroy();
+
+                    // Build new chart
+                    const ctx = document.getElementById('myChart').getContext('2d');
+                    myChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: selectedOption,
+                                data: values,
+                                borderColor: '#4f8ef7',
+                                backgroundColor: 'rgba(79, 142, 247, 0.1)',
+                                borderWidth: 2,
+                                pointRadius: 0,
+                                tension: 0.1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: ctx => `Value: ${ctx.parsed.y}`
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    ticks: {
+                                        maxTicksLimit: 10,
+                                        color: '#aaa'
+                                    },
+                                    grid: { color: 'rgba(255,255,255,0.05)' }
+                                },
+                                y: {
+                                    ticks: { color: '#aaa' },
+                                    grid: { color: 'rgba(255,255,255,0.05)' }
+                                }
+                            }
+                        }
+                    });
+
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('chart-container').style.display = 'block';
+                });
+        }
+    </script>
+</body>
+</html>

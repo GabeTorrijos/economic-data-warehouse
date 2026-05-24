@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Economic Data Warehouse</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav>
+        <div class="nav-brand"> Economic Data Warehouse</div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/query">SQL Query</a>
+            <a href="/visualize">Visualize</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Economic Data Warehouse</h1>
+            <p class="subtitle">A SQL-powered database of <strong>{{ total_records | int }}</strong> real economic data points from the Federal Reserve (FRED)</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_records | int }}</div>
+                <div class="stat-label">Total Records</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ series | length }}</div>
+                <div class="stat-label">Economic Series</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">75+</div>
+                <div class="stat-label">Years of Data</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">FRED</div>
+                <div class="stat-label">Data Source</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Available Datasets</h2>
+            <div class="series-grid">
+                {% for s in series %}
+                <div class="series-card">
+                    <div class="series-name">{{ s.series_name }}</div>
+                    <div class="series-id">{{ s.series_id }}</div>
+                    <a href="/visualize?series={{ s.series_id }}" class="btn-small">View Chart →</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Try a SQL Query</h2>
+            <p>Head to the <a href="/query">SQL Query page</a> to run real SQL queries against this database!</p>
+            <div class="example-queries">
+                <h3>Example queries you can run:</h3>
+                <code>SELECT date, value FROM economic_data WHERE series_id = 'UNRATE' ORDER BY date DESC LIMIT 10;</code>
+                <code>SELECT series_name, COUNT(*) as records FROM economic_data GROUP BY series_name;</code>
+                <code>SELECT date, value FROM economic_data WHERE series_id = 'FEDFUNDS' AND date >= '2020-01-01';</code>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Built with Python, Flask, SQLAlchemy & FRED API | <a href="https://github.com/GabeTorrijos" target="_blank">GitHub</a></p>
+    </footer>
+</body>
+</html>

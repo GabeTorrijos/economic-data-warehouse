@@ -1,0 +1,20 @@
+# Virtual environment
+venv/
+
+# Environment variables (contains API keys)
+.env
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# Mac system files
+.DS_Store
+
+# VS Code settings
+.vscode/

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Query | Economic Data Warehouse</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav>
+        <div class="nav-brand">Economic Data Warehouse</div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/query">SQL Query</a>
+            <a href="/visualize">Visualize</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>SQL Query Interface</h1>
+        <p class="subtitle">Run real SQL queries against <strong>47,000+</strong> rows of economic data!</p>
+
+        <div class="query-box">
+            <form method="POST" action="/query">
+                <textarea name="sql_query" placeholder="Type your SQL query here...">{{ user_query }}</textarea>
+                <button type="submit" class="btn">Run Query</button>
+            </form>
+        </div>
+
+        <div class="saved-queries">
+            <h3>Saved Queries — click to load:</h3>
+            <div class="saved-grid">
+                <div class="saved-card" onclick="loadQuery('SELECT date, value FROM economic_data WHERE series_id = \'UNRATE\' ORDER BY date DESC LIMIT 20')">
+                    <div class="saved-title">Latest Unemployment</div>
+                    <div class="saved-desc">Most recent 20 unemployment rate readings</div>
+                </div>
+                <div class="saved-card" onclick="loadQuery('SELECT series_name, COUNT(*) as total_records, MIN(date) as earliest, MAX(date) as latest FROM economic_data GROUP BY series_name ORDER BY total_records DESC')">
+                    <div class="saved-title">Database Summary</div>
+                    <div class="saved-desc">Record counts and date ranges for all series</div>
+                </div>
+                <div class="saved-card" onclick="loadQuery('SELECT date, value FROM economic_data WHERE series_id = \'FEDFUNDS\' AND date >= \'2020-01-01\' ORDER BY date')">
+                    <div class="saved-title">Fed Funds Rate (2020+)</div>
+                    <div class="saved-desc">Federal funds rate since 2020</div>
+                </div>
+                <div class="saved-card" onclick="loadQuery('SELECT date, value FROM economic_data WHERE series_id = \'CPIAUCSL\' AND date >= \'2018-01-01\' ORDER BY date')">
+                    <div class="saved-title">Inflation (2018+)</div>
+                    <div class="saved-desc">CPI inflation data since 2018</div>
+                </div>
+                <div class="saved-card" onclick="loadQuery('SELECT date, value FROM economic_data WHERE series_id = \'SP500\' ORDER BY date DESC LIMIT 30')">
+                    <div class="saved-title">S&P 500 Recent</div>
+                    <div class="saved-desc">Latest 30 S&P 500 readings</div>
+                </div>
+                <div class="saved-card" onclick="loadQuery('SELECT date, value FROM economic_data WHERE series_id = \'UNRATE\' AND value = (SELECT MAX(value) FROM economic_data WHERE series_id = \'UNRATE\')')">
+                    <div class="saved-title">Peak Unemployment</div>
+                    <div class="saved-desc">When was unemployment at its highest?</div>
+                </div>
+            </div>
+        </div>
+
+        {% if error %}
+        <div class="error-box">
+            <strong>SQL Error:</strong> {{ error }}
+        </div>
+        {% endif %}
+
+        {% if results %}
+        <div class="results-section">
+            <h3>Results — {{ results | length }} rows returned</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            {% for col in columns %}
+                            <th>{{ col }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in results %}
+                        <tr>
+                            {% for cell in row %}
+                            <td>{{ cell }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <footer>
+        <p>Built with Python, Flask, SQLAlchemy & FRED API | <a href="https://github.com/GabeTorrijos" target="_blank">GitHub</a></p>
+    </footer>
+
+    <script>
+        function loadQuery(query) {
+            document.querySelector('textarea[name="sql_query"]').value = query;
+        }
+    </script>
+</body>
+</html>
