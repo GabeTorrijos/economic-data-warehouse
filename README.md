@@ -85,19 +85,18 @@ CREATE TABLE economic_data (
 
 ## Project Structure
 
-economic-data-warehouse/
-├── app.py              # Flask application and routes
-├── models.py           # SQLAlchemy database schema
-├── database.py         # Database connection and setup
-├── fetch_data.py       # FRED API data pipeline
-├── requirements.txt    # Python dependencies
-├── templates/
-│   ├── index.html      # Home page
-│   ├── query.html      # SQL query interface
-│   └── visualize.html  # Chart visualizations
-└── static/
-└── css/
-└── style.css   # Stylesheet
+| File | Purpose |
+|------|---------|
+| `app.py` | Flask application and routes |
+| `models.py` | SQLAlchemy database schema |
+| `database.py` | Database connection and setup |
+| `fetch_data.py` | FRED API data pipeline |
+| `requirements.txt` | Python dependencies |
+| `templates/index.html` | Home page |
+| `templates/query.html` | SQL query interface |
+| `templates/visualize.html` | Chart visualizations |
+| `static/css/style.css` | Stylesheet |
+
 ---
 
 ## Setup Instructions
